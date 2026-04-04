@@ -1,29 +1,32 @@
+export type PolymarketTrigger = {
+  token_id: string
+  threshold: number
+  gt: boolean
+}
+
 export type Policy = {
   tokens: string[]
   contracts: string[]
-  price_range: Record<string, [string, string]>
+  triggers: PolymarketTrigger[]
   rate_limit_24h: number
-  value_limit_24h: string
+  value_limit_24h: number
 }
 
 export type Agent = {
-  id: number
-  owner: string
   name: string
+  owner: string
   description: string | null
   image_uri: string | null
-  strategy_type: string
-  strategy_prompt: string
+  strategy: string
   active: boolean
   status: Record<string, unknown> | null
-  policy: Record<string, unknown> | null
+  policy: Policy | null
 }
 
 export type AgentCreate = {
   name: string
-  strategy_type: string
-  strategy_prompt: string
-  policy: Record<string, unknown>
+  strategy: string
+  policy: Policy
   description?: string | null
   image_uri?: string | null
 }
@@ -32,21 +35,20 @@ export type AgentUpdate = {
   name?: string
   description?: string | null
   image_uri?: string | null
-  strategy_type?: string
-  strategy_prompt?: string
-  policy?: Record<string, unknown>
+  strategy?: string
+  policy?: Policy
   active?: boolean
 }
 
 export type Trade = {
   tx_hash: string
-  agent_id: number
+  agent_name: string
   token_in: string
   token_out: string
   amount_in: string
   amount_out: string | null
-  value_usd: number
-  timestamp: string
-  success: boolean
+  value_usd: string
+  timestamp: string | null
+  success: boolean | null
   tx_info: Record<string, unknown> | null
 }

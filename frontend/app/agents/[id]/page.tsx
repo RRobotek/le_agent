@@ -6,14 +6,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
-  getAgentById,
+  getAgentByName,
   getAgentTrades,
   updateAgent,
   deleteAgent,
   ApiError,
 } from "@/lib/api";
 import type { Agent, Trade, Policy } from "@/lib/types";
-import { CreateAgentModal } from "@/components/CreateAgentModal";
+import { CreateAgentModal, EMPTY_POLICY } from "@/components/CreateAgentModal";
 import { PolicyDisplay } from "@/components/PolicyDisplay";
 
 /* ── Active toggle ────────────────────────────────────────────── */
@@ -228,14 +228,16 @@ export default function AgentDetailPage() {
   const [editing, setEditing] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
+  const name = decodeURIComponent(id);
+
   const {
     data: agent,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["agent", id, token],
-    queryFn: () => getAgentById(token!, Number(id)),
-    enabled: !!token && !!id,
+    queryKey: ["agent", name, token],
+    queryFn: () => getAgentByName(token!, name),
+    enabled: !!token && !!name,
     retry: (failureCount, err) => {
       if (
         err instanceof ApiError &&
@@ -247,9 +249,9 @@ export default function AgentDetailPage() {
   });
 
   const { data: trades = [], isLoading: tradesLoading } = useQuery({
-    queryKey: ["trades", id, token],
-    queryFn: () => getAgentTrades(token!, Number(id)),
-    enabled: !!token && !!id && !!agent,
+    queryKey: ["trades", name, token],
+    queryFn: () => getAgentTrades(token!, name),
+    enabled: !!token && !!name && !!agent,
     retry: (failureCount, err) => {
       if (err instanceof ApiError && err.status === 401) return false;
       return failureCount < 2;
@@ -257,12 +259,11 @@ export default function AgentDetailPage() {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: (active: boolean) =>
-      updateAgent(token!, Number(id), { active }),
+    mutationFn: (active: boolean) => updateAgent(token!, name, { active }),
     onMutate: async (active) => {
-      await queryClient.cancelQueries({ queryKey: ["agent", id] });
-      const prev = queryClient.getQueryData<Agent>(["agent", id, token]);
-      queryClient.setQueryData(["agent", id, token], (old: Agent) => ({
+      await queryClient.cancelQueries({ queryKey: ["agent", name] });
+      const prev = queryClient.getQueryData<Agent>(["agent", name, token]);
+      queryClient.setQueryData(["agent", name, token], (old: Agent) => ({
         ...old,
         active,
       }));
@@ -270,16 +271,16 @@ export default function AgentDetailPage() {
     },
     onError: (_err, _active, ctx) => {
       if (ctx?.prev)
-        queryClient.setQueryData(["agent", id, token], ctx.prev);
+        queryClient.setQueryData(["agent", name, token], ctx.prev);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["agent", id] });
+      queryClient.invalidateQueries({ queryKey: ["agent", name] });
       queryClient.invalidateQueries({ queryKey: ["agents"] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteAgent(token!, Number(id)),
+    mutationFn: () => deleteAgent(token!, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["agents"] });
       router.push("/agents");
@@ -333,9 +334,8 @@ export default function AgentDetailPage() {
     name: agent.name,
     description: agent.description ?? "",
     image_uri: agent.image_uri ?? "",
-    strategy_type: agent.strategy_type,
-    strategy_prompt: agent.strategy_prompt,
-    policy: JSON.stringify(agent.policy ?? {}, null, 2),
+    strategy: agent.strategy,
+    policy: agent.policy ?? EMPTY_POLICY,
   };
 
   return (
@@ -414,12 +414,6 @@ export default function AgentDetailPage() {
                   {agent.active ? "Active" : "Inactive"}
                 </span>
               </div>
-              <p
-                className="text-[10px] tracking-[0.2em] uppercase"
-                style={{ color: "#EA6189" }}
-              >
-                {agent.strategy_type}
-              </p>
             </div>
 
             {/* Action controls */}
@@ -484,11 +478,11 @@ export default function AgentDetailPage() {
             )}
 
             <Section
-              label="Strategy Prompt"
+              label="Strategy"
               className={!agent.description ? "md:col-span-2" : ""}
             >
               <p className="text-sm text-[var(--text-muted)] leading-relaxed whitespace-pre-wrap">
-                {agent.strategy_prompt}
+                {agent.strategy}
               </p>
             </Section>
 
@@ -524,7 +518,7 @@ export default function AgentDetailPage() {
       <CreateAgentModal
         open={editing}
         onClose={() => setEditing(false)}
-        agentId={agent.id}
+        agentName={agent.name}
         initialValues={editInitialValues}
       />
     </>

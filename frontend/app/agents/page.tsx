@@ -17,7 +17,7 @@ function AgentTile({ agent }: { agent: Agent }) {
     .toUpperCase();
 
   return (
-    <Link href={`/agents/${agent.id}`} className="group block">
+    <Link href={`/agents/${encodeURIComponent(agent.name)}`} className="group block">
       <div
         className="relative aspect-square rounded-2xl overflow-hidden border transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-[0_0_24px_rgba(234,97,137,0.2)]"
         style={{ borderColor: "rgba(234,97,137,0.15)" }}
@@ -64,13 +64,7 @@ function AgentTile({ agent }: { agent: Agent }) {
           />
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col gap-0.5">
-          <p
-            className="text-[10px] tracking-[0.2em] uppercase"
-            style={{ color: "#EA6189" }}
-          >
-            {agent.strategy_type}
-          </p>
+        <div className="absolute inset-x-0 bottom-0 p-4">
           <h3 className="text-sm tracking-wide text-white leading-tight">
             {agent.name}
           </h3>
@@ -158,7 +152,7 @@ export default function AgentsPage() {
       <div className="flex flex-1 flex-col p-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {agents.map((agent) => (
-            <AgentTile key={agent.id} agent={agent} />
+            <AgentTile key={agent.name} agent={agent} />
           ))}
           <AddTile onClick={() => setCreating(true)} />
         </div>

@@ -69,8 +69,8 @@ export async function getAgents(token: string): Promise<Agent[]> {
   return req<Agent[]>("/agents", { headers: bearer(token) });
 }
 
-export async function getAgentById(token: string, id: number): Promise<Agent> {
-  return req<Agent>(`/agents/${id}`, { headers: bearer(token) });
+export async function getAgentByName(token: string, name: string): Promise<Agent> {
+  return req<Agent>(`/agents/${encodeURIComponent(name)}`, { headers: bearer(token) });
 }
 
 export async function createAgent(
@@ -86,18 +86,18 @@ export async function createAgent(
 
 export async function updateAgent(
   token: string,
-  id: number,
+  name: string,
   data: AgentUpdate,
 ): Promise<Agent> {
-  return req<Agent>(`/agents/${id}`, {
+  return req<Agent>(`/agents/${encodeURIComponent(name)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...bearer(token) },
     body: JSON.stringify(data),
   });
 }
 
-export async function deleteAgent(token: string, id: number): Promise<void> {
-  return reqVoid(`/agents/${id}`, {
+export async function deleteAgent(token: string, name: string): Promise<void> {
+  return reqVoid(`/agents/${encodeURIComponent(name)}`, {
     method: "DELETE",
     headers: bearer(token),
   });
@@ -105,7 +105,7 @@ export async function deleteAgent(token: string, id: number): Promise<void> {
 
 export async function getAgentTrades(
   token: string,
-  id: number,
+  name: string,
 ): Promise<Trade[]> {
-  return req<Trade[]>(`/agents/${id}/trades`, { headers: bearer(token) });
+  return req<Trade[]>(`/agents/${encodeURIComponent(name)}/trades`, { headers: bearer(token) });
 }

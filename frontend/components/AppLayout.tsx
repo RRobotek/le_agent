@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Sidebar } from "./Sidebar";
 import { useAuth } from "@/lib/auth";
 import Image from "next/image";
 
 function ConnectGate() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
+  useEffect(() => {
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
   const logoSrc =
     theme === "dark"
       ? "/main logo long white.svg"
@@ -42,6 +45,10 @@ function ConnectGate() {
 
 function SignInGate() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
+  useEffect(() => {
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
   const { signIn, isAuthenticating, error } = useAuth();
   const logoSrc =
     theme === "dark"
@@ -85,12 +92,16 @@ function SignInGate() {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
   const { token } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
 
   if (!mounted) return null;
   if (!isConnected) return <ConnectGate />;
@@ -117,33 +128,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div
       className={`${theme} flex h-full min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-300`}
     >
-      <Sidebar
-        open={sidebarOpen}
-        onToggle={() => setSidebarOpen((o) => !o)}
-        logoSrc={logoSrc}
-      />
-
-      <div
-        className={`
-          flex-1 flex flex-col
-          transition-all duration-200 ease-in-out
-          ${sidebarOpen ? "md:ml-64" : "ml-0"}
-        `}
-      >
+      <div className="flex-1 flex flex-col">
         {/* Top bar */}
         <header className="flex items-center h-14 px-4 border-b border-zinc-800 shrink-0">
           <div className="flex items-center gap-3 flex-1">
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="text-[var(--icon)] hover:text-[var(--text)] transition-colors"
-                aria-label="Open sidebar"
-              >
-                <Menu size={20} />
-              </button>
-            )}
+            <Image src={logoSrc} alt="LeAgent" width={80} height={24} className="shrink-0 mt-1" />
             {title && (
-              <span className="text-2xl tracking-widest uppercase">
+              <span className="text-2xl tracking-widest uppercase ml-2">
                 Le<span style={{ color: "#EA6189" }}>{title}</span>
               </span>
             )}
