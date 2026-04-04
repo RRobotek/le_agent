@@ -8,3 +8,4 @@ class Policy(BaseModel):
     price_range: dict[str, tuple[Decimal, Decimal]]  # token_address -> (min_price, max_price) in USD, 16 decimal points
     rate_limit_24h: int  # max number of trades per 24h
     value_limit_24h: Decimal  # max USD value per single trade
+

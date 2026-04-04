@@ -61,18 +61,3 @@ class TradeModel(Base):
     tx_info = Column(JSON)
 
     agent = relationship("AgentModel", back_populates="trades")
-
-
-"""
-payload for policy definition when Creating an agent (POST /agents)
-stored on chain in the contract / ENS json
-
-class Policy(BaseModel):
-tokens: list[str] # whitelisted token addresses
-contracts: list[str] # whitelisted contract addresses (e.g. Uniswap router)
-price_range: dict[
-str, tuple[Decimal(16 decimmal points, Decimal(16 decimmal points)]
-] # token_address -> (min_price, max_price) in USD # only trade this token if price is within range # omit a token to skip price check for it, if no price range is provided for a token, trade at any range
-rate_limit_24h: int # max number of trades per 24h
-value_limit_24h: int # in USD equivalent, hard cap per single trade
-"""

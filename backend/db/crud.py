@@ -8,7 +8,8 @@ from models.agent import AgentCreate, AgentUpdate
 
 async def create_agent(db: AsyncSession, data: AgentCreate, owner: str) -> AgentModel:
     pkey = Account.create().key.hex()
-    agent = AgentModel(**data.model_dump(), owner=owner.lower(), pkey=pkey)
+    dumped = data.model_dump(mode="json")
+    agent = AgentModel(**dumped, owner=owner.lower(), pkey=pkey)
     db.add(agent)
     await db.commit()
     await db.refresh(agent)
