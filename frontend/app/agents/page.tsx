@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { getAgents, ApiError } from "@/lib/api";
 import type { Agent } from "@/lib/types";
+import { CreateAgentModal } from "@/components/CreateAgentModal";
 
 function AgentTile({ agent }: { agent: Agent }) {
   const initials = agent.name
@@ -20,7 +22,6 @@ function AgentTile({ agent }: { agent: Agent }) {
         className="relative aspect-square rounded-2xl overflow-hidden border transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-[0_0_24px_rgba(234,97,137,0.2)]"
         style={{ borderColor: "rgba(234,97,137,0.15)" }}
       >
-        {/* Image or placeholder */}
         {agent.image_uri ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -45,7 +46,6 @@ function AgentTile({ agent }: { agent: Agent }) {
           </div>
         )}
 
-        {/* Bottom gradient overlay */}
         <div
           className="absolute inset-x-0 bottom-0 h-2/5"
           style={{
@@ -54,10 +54,9 @@ function AgentTile({ agent }: { agent: Agent }) {
           }}
         />
 
-        {/* Active indicator */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        <div className="absolute top-3 right-3">
           <span
-            className="w-1.5 h-1.5 rounded-full"
+            className="w-1.5 h-1.5 rounded-full block"
             style={{
               backgroundColor: agent.active ? "#4ade80" : "#6b7280",
               boxShadow: agent.active ? "0 0 6px #4ade80" : "none",
@@ -65,7 +64,6 @@ function AgentTile({ agent }: { agent: Agent }) {
           />
         </div>
 
-        {/* Name + strategy type */}
         <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col gap-0.5">
           <p
             className="text-[10px] tracking-[0.2em] uppercase"
@@ -122,6 +120,7 @@ function AddTile({ onClick }: { onClick?: () => void }) {
 
 export default function AgentsPage() {
   const { token, signOut } = useAuth();
+  const [creating, setCreating] = useState(false);
 
   const {
     data: agents = [],
@@ -153,13 +152,16 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col p-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {agents.map((agent) => (
-          <AgentTile key={agent.id} agent={agent} />
-        ))}
-        <AddTile onClick={() => {/* TODO: open create agent modal */}} />
+    <>
+      <div className="flex flex-1 flex-col p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {agents.map((agent) => (
+            <AgentTile key={agent.id} agent={agent} />
+          ))}
+          <AddTile onClick={() => setCreating(true)} />
+        </div>
       </div>
-    </div>
+      <CreateAgentModal open={creating} onClose={() => setCreating(false)} />
+    </>
   );
 }

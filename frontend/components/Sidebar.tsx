@@ -1,23 +1,20 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { PanelLeftClose, Bot, FlaskConical } from 'lucide-react'
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PanelLeftClose, Bot, FlaskConical } from "lucide-react";
 
 interface SidebarProps {
-  open: boolean
-  onToggle: () => void
-  logoSrc: string
+  open: boolean;
+  onToggle: () => void;
+  logoSrc: string;
 }
 
-const navItems = [
-  { href: '/agents', label: 'Agents', icon: Bot },
-  { href: '/test', label: 'Test', icon: FlaskConical },
-]
+const navItems = [{ href: "/agents", label: "Agents", icon: Bot }];
 
 export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
   return (
     <>
       {/* Mobile backdrop */}
@@ -36,7 +33,7 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
           text-[var(--text)]
           flex flex-col
           transition-all duration-300 ease-in-out
-          ${open ? 'translate-x-0' : '-translate-x-full'}
+          ${open ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* Top row */}
@@ -60,21 +57,22 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
         {/* Nav */}
         <nav className="flex flex-col gap-0.5 px-2 py-3 border-b border-[var(--text)]/10">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href
+            const active = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm tracking-wide transition-colors
-                  ${active
-                    ? 'bg-[var(--text)]/10 text-[var(--text)]'
-                    : 'text-[var(--icon)] hover:bg-[var(--text)]/5 hover:text-[var(--text)]'
+                  ${
+                    active
+                      ? "bg-[var(--text)]/10 text-[var(--text)]"
+                      : "text-[var(--icon)] hover:bg-[var(--text)]/5 hover:text-[var(--text)]"
                   }`}
               >
                 <Icon size={16} />
                 {label}
               </Link>
-            )
+            );
           })}
         </nav>
 
@@ -82,5 +80,5 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
         <div className="flex-1 overflow-y-auto px-2 py-2" />
       </aside>
     </>
-  )
+  );
 }
