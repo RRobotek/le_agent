@@ -6,6 +6,7 @@ import { Menu, Sun, Moon } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Sidebar } from "./Sidebar";
+import { useAuth } from "@/lib/auth";
 import Image from "next/image";
 
 function ConnectGate() {
@@ -39,8 +40,51 @@ function ConnectGate() {
   );
 }
 
+function SignInGate() {
+  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const { signIn, isAuthenticating, error } = useAuth();
+  const logoSrc =
+    theme === "dark"
+      ? "/main logo long white.svg"
+      : "/main logo long black.svg";
+
+  return (
+    <div
+      className={`${theme} flex h-full min-h-screen flex-col items-center justify-center gap-10 bg-[var(--bg)]`}
+    >
+      <button
+        onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+        className="absolute top-4 right-4 text-[var(--icon)] hover:text-[var(--text)] transition-colors cursor-pointer"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
+
+      <Image src={logoSrc} alt="LeAgent" width={200} height={48} priority />
+
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-sm tracking-widest uppercase text-[var(--text-muted)]">
+          Sign a message to authenticate
+        </p>
+        <button
+          onClick={signIn}
+          disabled={isAuthenticating}
+          className="px-6 py-2.5 rounded-full text-sm tracking-widest uppercase text-white transition-opacity disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+          style={{ backgroundColor: "#EA6189" }}
+        >
+          {isAuthenticating ? "Waiting for signature…" : "Sign In"}
+        </button>
+        {error && (
+          <p className="text-xs text-red-400">{error}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
+  const { token } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
@@ -50,6 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!mounted) return null;
   if (!isConnected) return <ConnectGate />;
+  if (!token) return <SignInGate />;
 
   const pageTitle: Record<string, string> = {
     "/agents": "Agents",

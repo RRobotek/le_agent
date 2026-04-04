@@ -1,17 +1,22 @@
-export type Policy = {
-  canTradeOn: string[]       // e.g. ["Uniswap", "Aave"]
-  canTradeAssets: string[]   // e.g. ["ETH", "USDC", "WBTC"]
-}
-
-export type Strategy = {
-  strategyType: string        // e.g. "LP Rebalancing", "Trend Following"
-  strategyExplanation: string // plain English description written by the user
-}
-
 export type Agent = {
-  id: string
+  id: number
+  owner: string
   name: string
-  description: string
-  policy: Policy
-  strategy: Strategy
+  description: string | null
+  image_uri: string | null
+  strategy_type: string
+  strategy_prompt: string
+  active: boolean
+  status: Record<string, unknown> | null
+  policy: Record<string, unknown> | null
+}
+
+export type AgentCreate = {
+  name: string
+  strategy_type: string
+  strategy_prompt: string
+  pkey: string
+  policy: Record<string, unknown>
+  description?: string | null
+  image_uri?: string | null
 }

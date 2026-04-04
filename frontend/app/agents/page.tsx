@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Agent } from '@/lib/types'
-import { getAgents } from '@/lib/storage'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/lib/auth'
+import { getAgents, ApiError } from '@/lib/api'
+import type { Agent } from '@/lib/types'
 
 function AgentCard({ agent }: { agent: Agent }) {
   return (
@@ -14,10 +15,12 @@ function AgentCard({ agent }: { agent: Agent }) {
       }}
     >
       <p className="text-xs tracking-widest uppercase" style={{ color: '#EA6189' }}>
-        {agent.strategy.strategyType}
+        {agent.strategy_type}
       </p>
       <h2 className="text-lg tracking-wide text-[var(--text)]">{agent.name}</h2>
-      <p className="text-xs text-[var(--text-muted)] leading-relaxed">{agent.description}</p>
+      <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+        {agent.description ?? agent.strategy_prompt}
+      </p>
     </div>
   )
 }
@@ -50,15 +53,31 @@ function AgentSlot({ onClick }: { onClick?: () => void }) {
 }
 
 export default function AgentsPage() {
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const { token, signOut } = useAuth()
 
-  useEffect(() => {
-    setAgents(getAgents())
-    setLoaded(true)
-  }, [])
+  const { data: agents = [], isLoading, error } = useQuery({
+    queryKey: ['agents', token],
+    queryFn: () => getAgents(token!),
+    enabled: !!token,
+    retry: (failureCount, err) => {
+      if (err instanceof ApiError && err.status === 401) return false
+      return failureCount < 2
+    },
+  })
 
-  if (!loaded) return null
+  // Token expired or revoked — force re-auth
+  if (error instanceof ApiError && error.status === 401) {
+    signOut()
+    return null
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <p className="text-xs tracking-widest uppercase text-[var(--text-muted)]">Loading…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-1 flex-col p-6">
