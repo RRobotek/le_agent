@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { PanelLeftClose, LayoutDashboard, Bot, ArrowLeftRight } from 'lucide-react'
+import { PanelLeftClose, LayoutDashboard, Bot, ArrowLeftRight, FlaskConical } from 'lucide-react'
 
 interface SidebarProps {
   open: boolean
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/agents', label: 'Agents', icon: Bot },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+  { href: '/test', label: 'Test', icon: FlaskConical },
 ]
 
 export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {

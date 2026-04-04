@@ -14,6 +14,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     '/agents': 'Agents',
     '/dashboard': 'Dashboard',
     '/transactions': 'Transactions',
+    '/test': 'Test',
   }
   const title = pageTitle[pathname] ?? ''
 
