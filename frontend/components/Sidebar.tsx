@@ -1,13 +1,15 @@
 'use client'
 
+import Image from 'next/image'
 import { PanelLeftClose } from 'lucide-react'
 
 interface SidebarProps {
   open: boolean
   onToggle: () => void
+  logoSrc: string
 }
 
-export function Sidebar({ open, onToggle }: SidebarProps) {
+export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
   return (
     <>
       {/* Mobile backdrop */}
@@ -30,7 +32,13 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
       >
         {/* Top row */}
         <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800 shrink-0">
-          <span className="text-white font-semibold tracking-tight">LeAgent</span>
+          <Image
+            src={logoSrc}
+            alt="LeAgent"
+            width={100}
+            height={33}
+            className="shrink-0 mt-1"
+          />
           <button
             onClick={onToggle}
             className="text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
@@ -44,7 +52,7 @@ export function Sidebar({ open, onToggle }: SidebarProps) {
         <div className="px-4 pt-4 pb-2 shrink-0">
           <div className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-full px-3 py-1.5 cursor-pointer">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-xs font-mono text-zinc-300">0x4f3a...2e</span>
+            <span className="text-xs tracking-wider text-zinc-300">0x4f3a...2e</span>
           </div>
         </div>
 

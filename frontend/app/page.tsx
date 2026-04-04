@@ -1,7 +1,7 @@
 export default function Home() {
   return (
     <div className="flex flex-1 items-center justify-center">
-      <h1 className="text-2xl font-semibold tracking-tight">Welcome to LeAgent</h1>
+      <h1 className="text-3xl tracking-widest uppercase">Welcome to LeAgent</h1>
     </div>
   );
 }
