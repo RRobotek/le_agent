@@ -366,7 +366,7 @@ export default function AgentDetailPage() {
             </div>
           )}
           <div
-            className="absolute inset-x-0 bottom-0 h-16"
+            className="absolute inset-x-0 bottom-0 h-24"
             style={{
               background:
                 "linear-gradient(to top, var(--bg) 0%, transparent 100%)",
@@ -375,7 +375,7 @@ export default function AgentDetailPage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col gap-8 px-6 pb-10 -mt-2">
+        <div className="flex flex-col gap-8 px-6 pb-10 mt-6">
           {/* Header row */}
           <div className="flex items-start gap-4">
             <button
