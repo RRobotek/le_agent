@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSignMessage } from "wagmi";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
@@ -13,7 +14,7 @@ import {
   ApiError,
 } from "@/lib/api";
 import type { Agent, Trade, Policy } from "@/lib/types";
-import { CreateAgentModal, EMPTY_POLICY } from "@/components/CreateAgentModal";
+import { CreateAgentModal, EMPTY_POLICY, buildRecordPayload } from "@/components/CreateAgentModal";
 import { PolicyDisplay } from "@/components/PolicyDisplay";
 
 /* ── Active toggle ────────────────────────────────────────────── */
@@ -225,6 +226,7 @@ export default function AgentDetailPage() {
   const { token, signOut } = useAuth();
   const queryClient = useQueryClient();
 
+  const { signMessageAsync } = useSignMessage();
   const [editing, setEditing] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
@@ -259,7 +261,14 @@ export default function AgentDetailPage() {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: (active: boolean) => updateAgent(token!, name, { active }),
+    mutationFn: async (active: boolean) => {
+      const sigPayload = buildRecordPayload(
+        agent!.name, agent!.strategy, agent!.policy ?? EMPTY_POLICY,
+        agent!.description, agent!.image_uri,
+      );
+      const record_sig = await signMessageAsync({ message: sigPayload });
+      return updateAgent(token!, name, { active, record_sig });
+    },
     onMutate: async (active) => {
       await queryClient.cancelQueries({ queryKey: ["agent", name] });
       const prev = queryClient.getQueryData<Agent>(["agent", name, token]);

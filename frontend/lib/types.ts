@@ -27,11 +27,13 @@ export type AgentCreate = {
   name: string
   strategy: string
   policy: Policy
+  record_sig: string
   description?: string | null
   image_uri?: string | null
 }
 
 export type AgentUpdate = {
+  record_sig: string
   name?: string
   description?: string | null
   image_uri?: string | null

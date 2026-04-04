@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSignMessage } from "wagmi";
 import { X, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { createAgent, updateAgent, ApiError } from "@/lib/api";
@@ -28,6 +29,28 @@ const UNISWAP_ROUTERS: { name: string; address: string }[] = [
 
 const UNI_LOGO =
   "https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png";
+
+/* ── Canonical payload (must match Python's sort_keys=True, separators=(",",":")) ── */
+
+function sortKeys(val: unknown): unknown {
+  if (Array.isArray(val)) return val.map(sortKeys);
+  if (val !== null && typeof val === "object") {
+    return Object.fromEntries(
+      Object.keys(val as object).sort().map((k) => [k, sortKeys((val as Record<string, unknown>)[k])]),
+    );
+  }
+  return val;
+}
+
+export function buildRecordPayload(
+  name: string,
+  strategy: string,
+  policy: Policy,
+  description: string | null,
+  image_uri: string | null,
+): string {
+  return JSON.stringify(sortKeys({ name, strategy, policy, description, image_uri }));
+}
 
 export const EMPTY_POLICY: Policy = {
   tokens: [],
@@ -72,6 +95,7 @@ export function CreateAgentModal({
 }: CreateAgentModalProps) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
+  const { signMessageAsync } = useSignMessage();
   const isEdit = agentName !== undefined;
 
   const [form, setForm] = useState<FormState>({ ...EMPTY, ...initialValues });
@@ -118,15 +142,18 @@ export function CreateAgentModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload = {
-      name: form.name.trim(),
-      strategy: form.strategy.trim(),
-      policy: form.policy,
-      description: form.description.trim() || null,
-      image_uri: form.image_uri.trim() || null,
-    };
-    if (isEdit) editMutation.mutate(payload);
-    else createMutation.mutate(payload);
+    const name = form.name.trim();
+    const strategy = form.strategy.trim();
+    const policy = form.policy;
+    const description = form.description.trim() || null;
+    const image_uri = form.image_uri.trim() || null;
+
+    const sigPayload = buildRecordPayload(name, strategy, policy, description, image_uri);
+
+    signMessageAsync({ message: sigPayload }).then((record_sig) => {
+      if (isEdit) editMutation.mutate({ name, strategy, policy, description, image_uri, record_sig });
+      else createMutation.mutate({ name, strategy, policy, description, image_uri, record_sig });
+    });
   }
 
   if (!mounted || !open) return null;
