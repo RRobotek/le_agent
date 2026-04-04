@@ -1,3 +1,4 @@
+from eth_account import Account
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +7,8 @@ from models.agent import AgentCreate
 
 
 async def create_agent(db: AsyncSession, data: AgentCreate, owner: str) -> AgentModel:
-    agent = AgentModel(**data.model_dump(), owner=owner)
+    pkey = Account.create().key.hex()
+    agent = AgentModel(**data.model_dump(), owner=owner.lower(), pkey=pkey)
     db.add(agent)
     await db.commit()
     await db.refresh(agent)
@@ -18,8 +20,8 @@ async def get_agent_by_id(db: AsyncSession, agent_id: int) -> AgentModel | None:
     return result.scalar_one_or_none()
 
 
-
-
 async def get_agents_by_owner(db: AsyncSession, owner: str) -> list[AgentModel]:
-    result = await db.execute(select(AgentModel).where(AgentModel.owner == owner))
+    result = await db.execute(
+        select(AgentModel).where(AgentModel.owner == owner.lower())
+    )
     return list(result.scalars().all())

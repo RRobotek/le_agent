@@ -7,8 +7,8 @@ class AgentCreate(BaseModel):
     image_uri: str | None = None
     strategy_type: str  # "PRICE_ACTION" | "POLYMARKET" | "X_SENTIMENT"
     strategy_prompt: str
-    pkey: str
     policy: dict
+
 
 
 class AgentResponse(BaseModel):

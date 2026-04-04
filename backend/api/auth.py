@@ -79,6 +79,6 @@ def get_current_user(
         address: str = payload.get("sub")
         if not address:
             raise HTTPException(status_code=401, detail="Invalid token")
-        return address
+        return address.lower()
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
