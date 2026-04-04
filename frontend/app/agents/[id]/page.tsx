@@ -12,8 +12,9 @@ import {
   deleteAgent,
   ApiError,
 } from "@/lib/api";
-import type { Agent, Trade } from "@/lib/types";
+import type { Agent, Trade, Policy } from "@/lib/types";
 import { CreateAgentModal } from "@/components/CreateAgentModal";
+import { PolicyDisplay } from "@/components/PolicyDisplay";
 
 /* ── Active toggle ────────────────────────────────────────────── */
 
@@ -493,16 +494,7 @@ export default function AgentDetailPage() {
 
             {agent.policy && Object.keys(agent.policy).length > 0 && (
               <Section label="Policy">
-                <pre
-                  className="text-xs leading-relaxed overflow-x-auto rounded-xl p-3"
-                  style={{
-                    backgroundColor: "rgba(234,97,137,0.05)",
-                    color: "var(--text-muted)",
-                    border: "1px solid rgba(234,97,137,0.1)",
-                  }}
-                >
-                  {JSON.stringify(agent.policy, null, 2)}
-                </pre>
+                <PolicyDisplay policy={agent.policy as unknown as Policy} />
               </Section>
             )}
 

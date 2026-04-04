@@ -1,3 +1,11 @@
+export type Policy = {
+  tokens: string[]
+  contracts: string[]
+  price_range: Record<string, [string, string]>
+  rate_limit_24h: number
+  value_limit_24h: string
+}
+
 export type Agent = {
   id: number
   owner: string
