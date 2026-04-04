@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -136,10 +136,12 @@ export default function AgentsPage() {
     },
   });
 
-  if (error instanceof ApiError && error.status === 401) {
-    signOut();
-    return null;
-  }
+  const is401 = error instanceof ApiError && error.status === 401;
+  useEffect(() => {
+    if (is401) signOut();
+  }, [is401, signOut]);
+
+  if (is401) return null;
 
   if (isLoading) {
     return (

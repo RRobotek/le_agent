@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
@@ -285,10 +285,12 @@ export default function AgentDetailPage() {
     },
   });
 
-  if (error instanceof ApiError && error.status === 401) {
-    signOut();
-    return null;
-  }
+  const is401 = error instanceof ApiError && error.status === 401;
+  useEffect(() => {
+    if (is401) signOut();
+  }, [is401, signOut]);
+
+  if (is401) return null;
 
   if (isLoading) {
     return (
