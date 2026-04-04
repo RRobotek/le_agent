@@ -89,14 +89,16 @@
   --accent: #EA6189;
   --text: #09090b;
   --text-muted: #6b7280;
+  --icon: #3f3f46;
 }
 
 .dark {
   --bg: #09090b;
-  --surface: #1a1f2e;
+  --surface: #09090b;
   --accent: #EA6189;
   --text: #ffffff;
   --text-muted: #6b7280;
+  --icon: #a1a1aa;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -128,6 +130,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --accent: #EA6189;
 }
 
 @layer base {

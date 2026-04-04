@@ -1,7 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { PanelLeftClose } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { PanelLeftClose, LayoutDashboard, Bot, ArrowLeftRight } from 'lucide-react'
 
 interface SidebarProps {
   open: boolean
@@ -9,7 +11,14 @@ interface SidebarProps {
   logoSrc: string
 }
 
+const navItems = [
+  { href: '/agents', label: 'Agents', icon: Bot },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+]
+
 export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
+  const pathname = usePathname()
   return (
     <>
       {/* Mobile backdrop */}
@@ -24,14 +33,15 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
       <aside
         className={`
           fixed top-0 left-0 h-full w-64 z-30
-          bg-zinc-950 border-r border-zinc-800
+          bg-[var(--surface)] border-r border-[var(--text)]/10
+          text-[var(--text)]
           flex flex-col
-          transition-transform duration-200 ease-in-out
+          transition-all duration-300 ease-in-out
           ${open ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Top row */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--text)]/10 shrink-0">
           <Image
             src={logoSrc}
             alt="LeAgent"
@@ -41,20 +51,33 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
           />
           <button
             onClick={onToggle}
-            className="text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
+            className="text-[var(--icon)] hover:text-[var(--text)] transition-colors"
             aria-label="Close sidebar"
           >
             <PanelLeftClose size={18} />
           </button>
         </div>
 
-        {/* Wallet pill */}
-        <div className="px-4 pt-4 pb-2 shrink-0">
-          <div className="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 transition-colors rounded-full px-3 py-1.5 cursor-pointer">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-xs tracking-wider text-zinc-300">0x4f3a...2e</span>
-          </div>
-        </div>
+        {/* Nav */}
+        <nav className="flex flex-col gap-0.5 px-2 py-3 border-b border-[var(--text)]/10">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm tracking-wide transition-colors
+                  ${active
+                    ? 'bg-[var(--text)]/10 text-[var(--text)]'
+                    : 'text-[var(--icon)] hover:bg-[var(--text)]/5 hover:text-[var(--text)]'
+                  }`}
+              >
+                <Icon size={16} />
+                {label}
+              </Link>
+            )
+          })}
+        </nav>
 
         {/* Agent list — populated later */}
         <div className="flex-1 overflow-y-auto px-2 py-2" />
