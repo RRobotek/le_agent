@@ -37,7 +37,7 @@ DECISION_SCHEMA = {
 
 async def decide(
     strategy: str,
-    prices: dict[str, float],  # {token_address: usd_price}
+    prices: dict[str, float],
     policy: dict,
 ) -> dict:
     """
@@ -57,7 +57,7 @@ async def decide(
     )
 
     response = await client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-sonnet-4-6",
         max_tokens=1024,
         system=strategy,
         messages=[
@@ -71,13 +71,15 @@ async def decide(
                 ),
             }
         ],
-        output_config={
-            "format": {
-                "type": "json_schema",
-                "schema": DECISION_SCHEMA,
+        tools=[
+            {
+                "name": "trading_decision",
+                "description": "Submit your trading decision",
+                "input_schema": DECISION_SCHEMA,
             }
-        },
+        ],
+        tool_choice={"type": "tool", "name": "trading_decision"},
     )
 
-    text = next(b.text for b in response.content if b.type == "text")
-    return json.loads(text)
+    block = next(b for b in response.content if b.type == "tool_use")
+    return block.input

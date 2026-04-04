@@ -1,57 +1,37 @@
 import os
-import time
 
+import httpx
 from eth_account import Account
 from web3 import Web3
 
 from utils.keys import derive_pkey
 
-# Minimal ABIs
-ERC20_ABI = [
-    {
-        "name": "allowance",
-        "type": "function",
-        "inputs": [{"name": "owner", "type": "address"}, {"name": "spender", "type": "address"}],
-        "outputs": [{"name": "", "type": "uint256"}],
-        "stateMutability": "view",
-    },
-    {
-        "name": "approve",
-        "type": "function",
-        "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}],
-        "outputs": [{"name": "", "type": "bool"}],
-        "stateMutability": "nonpayable",
-    },
-]
+API_URL = "https://trade-api.gateway.uniswap.org/v1"
+HEADERS = {
+    "Content-Type": "application/json",
+    "x-universal-router-version": "2.0",
+}
 
-SWAP_ROUTER_ABI = [
+# Minimal ABI — only the function the agent wallet calls on LeAgentExecutor
+EXECUTOR_ABI = [
     {
-        "name": "exactInputSingle",
+        "name": "executeSwap",
         "type": "function",
+        "stateMutability": "nonpayable",
         "inputs": [
-            {
-                "name": "params",
-                "type": "tuple",
-                "components": [
-                    {"name": "tokenIn", "type": "address"},
-                    {"name": "tokenOut", "type": "address"},
-                    {"name": "fee", "type": "uint24"},
-                    {"name": "recipient", "type": "address"},
-                    {"name": "deadline", "type": "uint256"},
-                    {"name": "amountIn", "type": "uint256"},
-                    {"name": "amountOutMinimum", "type": "uint256"},
-                    {"name": "sqrtPriceLimitX96", "type": "uint160"},
-                ],
-            }
+            {"name": "tokenIn",    "type": "address"},
+            {"name": "amountIn",   "type": "uint256"},
+            {"name": "swapTarget", "type": "address"},
+            {"name": "swapValue",  "type": "uint256"},
+            {"name": "swapData",   "type": "bytes"},
         ],
-        "outputs": [{"name": "amountOut", "type": "uint256"}],
-        "stateMutability": "payable",
+        "outputs": [],
     }
 ]
 
-# Uniswap V3 SwapRouter (original — has deadline in params)
-DEFAULT_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"
-MAX_UINT256 = 2**256 - 1
+
+def _headers() -> dict[str, str]:
+    return {**HEADERS, "x-api-key": os.environ["UNISWAP_API_KEY"]}
 
 
 def _get_w3() -> Web3:
@@ -68,72 +48,136 @@ def _sign_and_send(w3: Web3, tx: dict, private_key: str) -> str:
     return tx_hash.hex()
 
 
-def approve_token(
-    w3: Web3,
-    private_key: str,
-    token_address: str,
-    spender: str,
-    amount: int,
-) -> str | None:
-    """Approve spender to spend token. Returns tx_hash or None if already approved."""
-    account = Account.from_key(private_key)
-    token = w3.eth.contract(address=Web3.to_checksum_address(token_address), abi=ERC20_ABI)
-
-    allowance = token.functions.allowance(account.address, Web3.to_checksum_address(spender)).call()
-    if allowance >= amount:
-        return None
-
-    tx = token.functions.approve(
-        Web3.to_checksum_address(spender), MAX_UINT256
-    ).build_transaction({
-        "from": account.address,
-        "nonce": w3.eth.get_transaction_count(account.address),
-        "gas": 60000,
-        "gasPrice": w3.eth.gas_price,
-    })
-    tx_hash = _sign_and_send(w3, tx, private_key)
-    w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-    return tx_hash
+async def check_approval(
+    wallet_address: str,
+    token: str,
+    amount: str,
+    chain_id: int = 1,
+) -> dict | None:
+    """Check if a token is approved for the Trading API. Returns approval tx data or None."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{API_URL}/check_approval",
+            headers=_headers(),
+            json={
+                "walletAddress": wallet_address,
+                "token": token,
+                "amount": amount,
+                "chainId": chain_id,
+            },
+        )
+        resp.raise_for_status()
+        return resp.json().get("approval")
 
 
-def execute_swap(
+async def get_quote(
+    swapper: str,
+    token_in: str,
+    token_out: str,
+    amount: str,
+    chain_id: int = 1,
+    slippage: float = 0.5,
+    recipient: str | None = None,
+) -> dict:
+    """Get a swap quote from the Trading API. Returns the full quote response."""
+    body: dict = {
+        "swapper": swapper,
+        "tokenIn": token_in,
+        "tokenOut": token_out,
+        "tokenInChainId": str(chain_id),
+        "tokenOutChainId": str(chain_id),
+        "amount": amount,
+        "type": "EXACT_INPUT",
+        "slippageTolerance": slippage,
+        "routingPreference": "BEST_PRICE",
+    }
+    if recipient:
+        body["recipient"] = recipient
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(f"{API_URL}/quote", headers=_headers(), json=body)
+        resp.raise_for_status()
+        return resp.json()
+
+
+def _prepare_swap_request(quote_response: dict) -> dict:
+    """Strip permitData/permitTransaction for smart-contract (legacy approval) flow."""
+    # Contracts can't sign EIP-712, so we always use the legacy approval path.
+    # The contract does tokenIn.approve(router) itself before calling the swap.
+    return {k: v for k, v in quote_response.items() if k not in ("permitData", "permitTransaction")}
+
+
+async def execute_swap(
     ens_name: str,
+    contract_address: str,
+    owner_address: str,
     token_in: str,
     token_out: str,
     amount_in_wei: int,
-    router: str = DEFAULT_ROUTER,
-    fee: int = 3000,
+    chain_id: int = 1,
 ) -> str:
     """
-    Execute a Uniswap V3 exactInputSingle swap.
-    Returns tx_hash.
+    Execute a swap via LeAgentExecutor on behalf of the owner.
+
+    The agent wallet (derived from ens_name) signs and sends a tx to the contract.
+    The contract pulls tokenIn from owner, approves the router, executes the swap.
+    tokenOut is sent directly to owner (set as recipient in the quote).
+
+    Prerequisites:
+      - owner has approved tokenIn to contract_address
+      - CRE has called updatePolicy() on the contract with current ENS policy
     """
     w3 = _get_w3()
     private_key = derive_pkey(ens_name)
-    account = Account.from_key(private_key)
+    agent_account = Account.from_key(private_key)
+    contract_address = Web3.to_checksum_address(contract_address)
+    owner_address = Web3.to_checksum_address(owner_address)
+    amount_str = str(amount_in_wei)
 
-    token_in = Web3.to_checksum_address(token_in)
-    token_out = Web3.to_checksum_address(token_out)
-    router = Web3.to_checksum_address(router)
+    # 1. Quote: contract is the swapper (has the tokens), owner is the recipient
+    quote_response = await get_quote(
+        swapper=contract_address,
+        token_in=token_in,
+        token_out=token_out,
+        amount=amount_str,
+        chain_id=chain_id,
+        recipient=owner_address,
+    )
 
-    approve_token(w3, private_key, token_in, router, amount_in_wei)
+    # 2. Get swap calldata
+    swap_request = _prepare_swap_request(quote_response)
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(f"{API_URL}/swap", headers=_headers(), json=swap_request)
+        resp.raise_for_status()
+        swap_data = resp.json()
 
-    router_contract = w3.eth.contract(address=router, abi=SWAP_ROUTER_ABI)
+    swap_tx = swap_data["swap"]
+    if not swap_tx.get("data") or swap_tx["data"] in ("", "0x"):
+        raise RuntimeError("Empty swap data — quote may have expired")
 
-    tx = router_contract.functions.exactInputSingle({
-        "tokenIn": token_in,
-        "tokenOut": token_out,
-        "fee": fee,
-        "recipient": account.address,
-        "deadline": int(time.time()) + 300,
-        "amountIn": amount_in_wei,
-        "amountOutMinimum": 0,
-        "sqrtPriceLimitX96": 0,
-    }).build_transaction({
-        "from": account.address,
-        "nonce": w3.eth.get_transaction_count(account.address),
-        "gas": 250000,
+    # 3. Encode call to contract.executeSwap(tokenIn, amountIn, swapTarget, swapValue, swapData)
+    executor = w3.eth.contract(address=contract_address, abi=EXECUTOR_ABI)
+    calldata = executor.encodeABI(
+        fn_name="executeSwap",
+        args=[
+            Web3.to_checksum_address(token_in),
+            amount_in_wei,
+            Web3.to_checksum_address(swap_tx["to"]),
+            int(swap_tx.get("value", "0")),
+            bytes.fromhex(swap_tx["data"].removeprefix("0x")),
+        ],
+    )
+
+    # 4. Agent wallet sends tx to the contract (pays gas only, never touches tokens)
+    tx = {
+        "to": contract_address,
+        "from": agent_account.address,
+        "data": calldata,
+        "value": 0,
+        "nonce": w3.eth.get_transaction_count(agent_account.address),
+        "gas": int(swap_tx.get("gasLimit", 350_000)),
         "gasPrice": w3.eth.gas_price,
-    })
+        "chainId": chain_id,
+    }
 
     return _sign_and_send(w3, tx, private_key)
