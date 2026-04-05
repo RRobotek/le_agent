@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -544,14 +544,14 @@ function PolicyEditor({
         onChange={(triggers) => onChange({ ...value, triggers })}
       />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Rate limit (trades / 24h)" required>
+        <Field label="Rate limit (trades / 24h)" required hint="Max number of trades your agent can execute in a 24h window. Keeps it from going overboard on a volatile day.">
           <NumberInput
             value={value.rate_limit_24h}
             onChange={(v) => onChange({ ...value, rate_limit_24h: v })}
             min={1}
           />
         </Field>
-        <Field label="Value limit (USD / 24h)" required>
+        <Field label="Value limit (USD / 24h)" required hint="Max total USD value your agent can trade in 24 hours. Once hit, it stops trading until the next day.">
           <NumberInput
             value={value.value_limit_24h}
             onChange={(v) => onChange({ ...value, value_limit_24h: v })}
@@ -623,7 +623,7 @@ function TokenSelector({
   }
 
   return (
-    <Field label="Whitelisted Tokens" required>
+    <Field label="Whitelisted Tokens" required hint="Only these tokens can be bought or sold. Your agent is locked to this list — nothing outside it gets touched.">
       {/* Selected chips */}
       {selectedInfos.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
@@ -817,7 +817,7 @@ function ContractSelector({
   }
 
   return (
-    <Field label="Whitelisted Contracts">
+    <Field label="Whitelisted Contracts" hint="Only these smart contracts can be called. Defaults to Uniswap routers — your agent won't interact with anything outside this list.">
       <div className="grid grid-cols-2 gap-2">
         {UNISWAP_ROUTERS.map((router) => {
           const isSelected = selected.some(
@@ -953,7 +953,7 @@ function TriggersEditor({
   }
 
   return (
-    <Field label="Polymarket Triggers">
+    <Field label="Polymarket Triggers" hint="Monitor real-world events via prediction markets. When a market's odds cross your threshold, it can signal your agent — great for black swan or macro event strategies.">
       {/* Existing triggers */}
       {triggers.length > 0 && (
         <div className="flex flex-col gap-1.5">
@@ -1246,13 +1246,64 @@ function Fieldset({
   );
 }
 
+function HintTooltip({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function onEnter() {
+    timer.current = setTimeout(() => setVisible(true), 500);
+  }
+  function onLeave() {
+    if (timer.current) clearTimeout(timer.current);
+    setVisible(false);
+  }
+
+  return (
+    <span
+      className="relative hidden md:inline-flex items-center"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
+      <span
+        className="text-[10px] cursor-help select-none leading-none"
+        style={{ color: "var(--text-muted)" }}
+      >
+        ⓘ
+      </span>
+      {visible && (
+        <div
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-56 z-[60] rounded-xl px-3 py-2.5 text-xs leading-relaxed pointer-events-none"
+          style={{
+            backgroundColor: "var(--bg)",
+            border: "1px solid rgba(234,97,137,0.2)",
+            color: "var(--text-muted)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+          }}
+        >
+          {text}
+          <div
+            className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 -mt-1"
+            style={{
+              backgroundColor: "var(--bg)",
+              borderRight: "1px solid rgba(234,97,137,0.2)",
+              borderBottom: "1px solid rgba(234,97,137,0.2)",
+            }}
+          />
+        </div>
+      )}
+    </span>
+  );
+}
+
 function Field({
   label,
   required,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -1269,6 +1320,7 @@ function Field({
             *
           </span>
         )}
+        {hint && <HintTooltip text={hint} />}
       </label>
       {children}
     </div>

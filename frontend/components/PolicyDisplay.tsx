@@ -30,13 +30,13 @@ function trunc(addr: string) {
 const chipBase: React.CSSProperties = {
   backgroundColor: "rgba(234,97,137,0.06)",
   border: "1px solid rgba(234,97,137,0.12)",
-  color: "var(--text-muted)",
+  color: "var(--text)",
 };
 
 function TokenChip({ address, token }: { address: string; token?: TokenInfo }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px]"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
       style={chipBase}
       title={address}
     >
@@ -67,7 +67,7 @@ function ContractChip({ address }: { address: string }) {
       href={`https://etherscan.io/address/${address}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] transition-colors"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors"
       style={chipBase}
       title={address}
     >
@@ -95,7 +95,7 @@ function TriggerRow({ trigger }: { trigger: PolymarketTrigger }) {
 
   return (
     <div
-      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[11px]"
+      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs"
       style={{ backgroundColor: "rgba(234,97,137,0.04)", border: "1px solid rgba(234,97,137,0.1)" }}
     >
       {data?.image && (
@@ -123,7 +123,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return (
     <div className="flex flex-col gap-2">
       <p
-        className="text-[10px] tracking-[0.15em] uppercase"
+        className="text-[11px] tracking-[0.15em] uppercase"
         style={{ color: "var(--text-muted)" }}
       >
         {label}
@@ -186,7 +186,7 @@ export function PolicyDisplay({ policy }: { policy: Policy }) {
         <Row label="Rate Limit (24h)">
           <p className="text-sm tabular-nums" style={{ color: "var(--text)" }}>
             {policy.rate_limit_24h.toLocaleString()}{" "}
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
               trades
             </span>
           </p>
@@ -194,7 +194,7 @@ export function PolicyDisplay({ policy }: { policy: Policy }) {
         <Row label="Value Limit (24h)">
           <p className="text-sm tabular-nums" style={{ color: "var(--text)" }}>
             ${policy.value_limit_24h.toLocaleString()}{" "}
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>
               USD
             </span>
           </p>

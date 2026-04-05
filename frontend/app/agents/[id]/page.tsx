@@ -218,7 +218,7 @@ export default function AgentDetailPage() {
             </div>
           )}
           <div
-            className="absolute inset-x-0 bottom-0 h-16"
+            className="absolute inset-x-0 bottom-0 h-24"
             style={{
               background:
                 "linear-gradient(to top, var(--bg) 0%, transparent 100%)",
@@ -227,7 +227,7 @@ export default function AgentDetailPage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col gap-8 px-6 pb-10 -mt-2">
+        <div className="flex flex-col gap-8 px-6 pb-10 mt-6">
           {/* Header row */}
           <div className="flex items-start gap-4">
             <button
@@ -261,6 +261,23 @@ export default function AgentDetailPage() {
                   {agent.running ? "Running" : "Stopped"}
                 </span>
               </div>
+              {agent.wallet && (
+                <a
+                  href={`https://etherscan.io/address/${agent.wallet}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 w-fit transition-opacity hover:opacity-70"
+                >
+                  <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>
+                    {agent.wallet.slice(0, 6)}...{agent.wallet.slice(-4)}
+                  </span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#EA6189" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </a>
+              )}
             </div>
 
             {/* Action controls */}
@@ -293,21 +310,21 @@ export default function AgentDetailPage() {
               {deleteConfirm ? (
                 <div className="flex items-center gap-2">
                   <span
-                    className="text-[10px] tracking-widest uppercase"
+                    className="text-[11px] tracking-widest uppercase"
                     style={{ color: "var(--text-muted)" }}
                   >
                     Sure?
                   </span>
                   <button
                     onClick={() => setDeleteConfirm(false)}
-                    className="text-[10px] tracking-widest uppercase transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
+                    className="text-[11px] tracking-widest uppercase transition-colors text-[var(--text-muted)] hover:text-[var(--text)]"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => deleteMutation.mutate()}
                     disabled={deleteMutation.isPending}
-                    className="text-[10px] tracking-widest uppercase transition-colors disabled:opacity-50"
+                    className="text-[11px] tracking-widest uppercase transition-colors disabled:opacity-50"
                     style={{ color: "#f87171" }}
                   >
                     {deleteMutation.isPending ? "Deleting…" : "Delete"}
