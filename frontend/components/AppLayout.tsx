@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 import { useAccount } from "wagmi";
@@ -10,6 +10,33 @@ import { useTheme } from "@/app/providers";
 import Image from "next/image";
 import Link from "next/link";
 
+function GradientBlob() {
+  const blobRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      if (!blobRef.current) return;
+      blobRef.current.style.transform = `translate(${e.clientX - 300}px, ${e.clientY - 300}px)`;
+    };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+
+  return (
+    <div
+      ref={blobRef}
+      className="pointer-events-none fixed w-[600px] h-[600px] rounded-full transition-transform duration-700 ease-out"
+      style={{
+        background: "radial-gradient(circle, rgba(234,97,137,0.32) 0%, rgba(234,97,137,0.12) 40%, transparent 70%)",
+        filter: "blur(40px)",
+        top: 0,
+        left: 0,
+        zIndex: 0,
+      }}
+    />
+  );
+}
+
 function ConnectGate() {
   const { theme, toggleTheme } = useTheme();
   const logoSrc =
@@ -18,7 +45,8 @@ function ConnectGate() {
       : "/main logo long black.svg";
 
   return (
-    <div className="flex h-full min-h-screen flex-col items-center justify-center gap-4 bg-[var(--bg)]">
+    <div className="relative flex h-full min-h-screen flex-col items-center justify-center gap-4 bg-[var(--bg)] overflow-hidden">
+      <GradientBlob />
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 text-[var(--icon)] hover:text-[var(--text)] transition-colors cursor-pointer"
@@ -27,24 +55,24 @@ function ConnectGate() {
         {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
       </button>
 
-      <Image src={logoSrc} alt="LeAgent" width={200} height={48} priority />
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        <Image src={logoSrc} alt="LeAgent" width={200} height={48} priority />
 
-      <div className="flex flex-col items-center gap-3">
         <p className="text-2xl font-light tracking-wide text-[var(--text)]" style={{ opacity: 0.9 }}>
           Cold storage. Hot trades.
         </p>
         <div className="mt-4 flex flex-col items-center gap-3">
-        <ConnectButton.Custom>
-          {({ openConnectModal }) => (
-            <button
-              onClick={openConnectModal}
-              className="px-6 py-2.5 rounded-full text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-80 cursor-pointer"
-              style={{ backgroundColor: "#EA6189" }}
-            >
-              Connect Wallet
-            </button>
-          )}
-        </ConnectButton.Custom>
+          <ConnectButton.Custom>
+            {({ openConnectModal }) => (
+              <button
+                onClick={openConnectModal}
+                className="px-6 py-2.5 rounded-full text-sm tracking-widest uppercase text-white transition-opacity hover:opacity-80 cursor-pointer"
+                style={{ backgroundColor: "#EA6189" }}
+              >
+                Connect Wallet
+              </button>
+            )}
+          </ConnectButton.Custom>
         </div>
       </div>
     </div>
