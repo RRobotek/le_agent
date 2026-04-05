@@ -18,11 +18,11 @@ EXECUTOR_ABI = [
         "type": "function",
         "stateMutability": "nonpayable",
         "inputs": [
-            {"name": "tokenIn",    "type": "address"},
-            {"name": "amountIn",   "type": "uint256"},
+            {"name": "tokenIn", "type": "address"},
+            {"name": "amountIn", "type": "uint256"},
             {"name": "swapTarget", "type": "address"},
-            {"name": "swapValue",  "type": "uint256"},
-            {"name": "swapData",   "type": "bytes"},
+            {"name": "swapValue", "type": "uint256"},
+            {"name": "swapData", "type": "bytes"},
         ],
         "outputs": [],
     }
@@ -113,7 +113,11 @@ async def get_quote(
 
 def _prepare_swap_request(quote_response: dict) -> dict:
     # Strip permitData — contracts can't sign EIP-712, router approval is done in executeSwap()
-    return {k: v for k, v in quote_response.items() if k not in ("permitData", "permitTransaction")}
+    return {
+        k: v
+        for k, v in quote_response.items()
+        if k not in ("permitData", "permitTransaction")
+    }
 
 
 async def execute_swap(

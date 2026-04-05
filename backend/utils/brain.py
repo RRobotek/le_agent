@@ -55,11 +55,13 @@ async def fetch_prices(tokens: list[str]) -> dict[str, float]:
             continue
         try:
             quote = await get_quote(
-                swapper=_DUMMY_SWAPPER,
+                swapper="0xD8DA6BF26964AF9D7EED9E03E53415D37AA96045",
                 token_in=USDC,
                 token_out=token,
                 amount="1000000",  # 1 USDC (6 decimals)
             )
+
+            print(f"Fetched quote for {token}: {quote}")
             # output amount in raw token units (18 decimals assumed)
             output_raw = int(quote["quote"]["output"]["amount"])
             if output_raw > 0:
