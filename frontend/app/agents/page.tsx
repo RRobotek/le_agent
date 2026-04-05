@@ -21,10 +21,10 @@ function AgentTile({ agent }: { agent: Agent }) {
     : null;
 
   return (
-    <div className="group flex flex-col">
-      <Link href={`/agents/${encodeURIComponent(agent.name)}`} className="block">
+    <div className="flex flex-col">
+      <Link href={`/agents/${encodeURIComponent(agent.name)}`} className="group block">
         <div
-          className="relative aspect-square rounded-t-2xl overflow-hidden border-x border-t transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(234,97,137,0.2)]"
+          className="relative aspect-square rounded-t-2xl overflow-hidden border-x border-t transition-all duration-150 group-hover:shadow-[0_0_24px_rgba(234,97,137,0.2)]"
           style={{ borderColor: "rgba(234,97,137,0.15)" }}
         >
           {agent.image_uri ? (
@@ -58,6 +58,7 @@ function AgentTile({ agent }: { agent: Agent }) {
                 "linear-gradient(to top, rgba(9,9,11,0.85) 0%, transparent 100%)",
             }}
           />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all duration-150" />
 
           <div className="absolute top-3 right-3">
             <span
@@ -82,13 +83,14 @@ function AgentTile({ agent }: { agent: Agent }) {
           href={`https://etherscan.io/address/${agent.wallet}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between px-3 py-1.5 rounded-b-2xl border-x border-b transition-colors hover:bg-[var(--surface)]"
+          className="group/sliver flex items-center justify-between px-3 py-1.5 rounded-b-2xl border-x border-b transition-all duration-150 hover:bg-[#EA6189]"
           style={{ borderColor: "rgba(234,97,137,0.15)" }}
         >
-          <span className="text-xs font-mono text-[var(--text-muted)]">
+          <span className="text-xs font-mono text-[var(--text-muted)] group-hover/sliver:text-white transition-colors duration-150">
             {shortWallet}
           </span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#EA6189" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className="stroke-[#EA6189] group-hover/sliver:stroke-white transition-colors duration-150">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
             <polyline points="15 3 21 3 21 9" />
             <line x1="10" y1="14" x2="21" y2="3" />
