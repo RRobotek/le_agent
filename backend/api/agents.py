@@ -34,6 +34,13 @@ async def _get_owned(ens_name: str, user: str) -> dict:
     return agent
 
 
+@router.get("/wallet")
+async def get_wallet(name: str, user: str = Depends(get_current_user)):
+    """Return the derived ENS name and agent wallet address for a given agent name."""
+    ens_name = build_ens_name(user, name)
+    return {"ens_name": ens_name, "wallet": derive_wallet(ens_name)}
+
+
 @router.post("", response_model=AgentResponse, status_code=201)
 async def create(body: AgentCreate, user: str = Depends(get_current_user)):
     payload = build_record_payload(
@@ -45,11 +52,14 @@ async def create(body: AgentCreate, user: str = Depends(get_current_user)):
     )
     verify_record_sig(payload, body.record_sig, user)
 
-    ens_name = await create_agent_subname(
+    ens_name = build_ens_name(user, body.name)
+
+    await create_agent_subname(
         owner=user,
         agent_name=body.name,
         data=body.model_dump(mode="json"),
         record_sig=body.record_sig,
+        contract_address=body.contract_address,
     )
     start_runner(ens_name)
 
@@ -58,6 +68,7 @@ async def create(body: AgentCreate, user: str = Depends(get_current_user)):
         "name": body.name,
         "owner": user.lower(),
         "wallet": derive_wallet(ens_name),
+        "contract_address": body.contract_address,
         "strategy": body.strategy,
         "policy": body.policy.model_dump(mode="json"),
         "description": body.description,

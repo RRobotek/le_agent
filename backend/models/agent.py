@@ -9,6 +9,7 @@ class AgentCreate(BaseModel):
     image_uri: str | None = None
     strategy: str
     policy: Policy
+    contract_address: str
     record_sig: str
 
 
@@ -25,6 +26,7 @@ class AgentResponse(BaseModel):
     ens_name: str
     owner: str
     wallet: str
+    contract_address: str | None
     description: str | None
     image_uri: str | None
     strategy: str

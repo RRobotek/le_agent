@@ -37,6 +37,8 @@ def _build_texts(data: dict, owner: str, record_sig: str) -> list[dict]:
         texts.append({"key": "description", "value": data["description"]})
     if data.get("image_uri"):
         texts.append({"key": "avatar", "value": data["image_uri"]})
+    if data.get("contract_address"):
+        texts.append({"key": "contract_address", "value": data["contract_address"]})
 
     return texts
 
@@ -58,6 +60,7 @@ def _parse_subname(raw: dict) -> dict | None:
         "owner": texts["owner"],
         "strategy": texts["strategy"],
         "policy": policy,
+        "contract_address": texts.get("contract_address"),
         "description": texts.get("description"),
         "image_uri": texts.get("avatar"),
         "wallet": derive_wallet(ens_name),
@@ -65,11 +68,14 @@ def _parse_subname(raw: dict) -> dict | None:
 
 
 async def create_agent_subname(
-    owner: str, agent_name: str, data: dict, record_sig: str
+    owner: str, agent_name: str, data: dict, record_sig: str, contract_address: str | None = None
 ) -> str:
     ens_name = build_ens_name(owner, agent_name)
     wallet = derive_wallet(ens_name)
     label = build_ens_label(owner, agent_name)
+
+    if contract_address:
+        data = {**data, "contract_address": contract_address}
 
     async with httpx.AsyncClient() as client:
         await client.post(
