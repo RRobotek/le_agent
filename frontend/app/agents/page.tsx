@@ -85,7 +85,7 @@ function AgentTile({ agent }: { agent: Agent }) {
           className="flex items-center justify-between px-3 py-1.5 rounded-b-2xl border-x border-b transition-colors hover:bg-[var(--surface)]"
           style={{ borderColor: "rgba(234,97,137,0.15)" }}
         >
-          <span className="text-[10px] font-mono text-[var(--text-muted)]">
+          <span className="text-xs font-mono text-[var(--text-muted)]">
             {shortWallet}
           </span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#EA6189" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
