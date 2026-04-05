@@ -34,9 +34,6 @@ function ConnectGate() {
           Cold storage. Hot trades.
         </p>
         <div className="mt-4 flex flex-col items-center gap-3">
-        <p className="text-sm tracking-widest uppercase text-[var(--text)]" style={{ opacity: 0.8 }}>
-          Connect your wallet to continue
-        </p>
         <ConnectButton.Custom>
           {({ openConnectModal }) => (
             <button
@@ -75,9 +72,6 @@ function SignInGate() {
       <Image src={logoSrc} alt="LeAgent" width={200} height={48} priority />
 
       <div className="flex flex-col items-center gap-3">
-        <p className="text-sm tracking-widest uppercase text-[var(--text)]" style={{ opacity: 0.8 }}>
-          Sign a message to authenticate your ledger
-        </p>
         <button
           onClick={signIn}
           disabled={isAuthenticating}
