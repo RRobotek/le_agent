@@ -7,7 +7,27 @@ import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { AuthProvider } from "@/lib/auth";
 import { http } from "wagmi";
-import { useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+
+type Theme = "light" | "dark";
+const ThemeContext = createContext<{ theme: Theme; toggleTheme: () => void }>({
+  theme: "light",
+  toggleTheme: () => {},
+});
+export function useTheme() { return useContext(ThemeContext); }
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>("light");
+  useEffect(() => {
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
+  }, [theme]);
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme: () => setTheme(t => t === "dark" ? "light" : "dark") }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
 
 function IPFSFixer() {
   useEffect(() => {
@@ -46,13 +66,15 @@ const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
-          <IPFSFixer />
-          <AuthProvider>{children}</AuthProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ThemeProvider>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            <IPFSFixer />
+            <AuthProvider>{children}</AuthProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ThemeProvider>
   );
 }

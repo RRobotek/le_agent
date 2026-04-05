@@ -88,7 +88,7 @@
   --surface: #f4f4f5;
   --accent: #EA6189;
   --text: #09090b;
-  --text-muted: #6b7280;
+  --text-muted: #4F4F4F;
   --icon: #3f3f46;
 }
 
@@ -97,7 +97,7 @@
   --surface: #18181b;
   --accent: #EA6189;
   --text: #ffffff;
-  --text-muted: #6b7280;
+  --text-muted: #CFCFCF;
   --icon: #a1a1aa;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

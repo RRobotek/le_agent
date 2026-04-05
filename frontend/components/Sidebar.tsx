@@ -38,13 +38,15 @@ export function Sidebar({ open, onToggle, logoSrc }: SidebarProps) {
       >
         {/* Top row */}
         <div className="flex items-center justify-between px-4 h-14 border-b border-[var(--text)]/10 shrink-0">
-          <Image
-            src={logoSrc}
-            alt="LeAgent"
-            width={100}
-            height={33}
-            className="shrink-0 mt-1"
-          />
+          <Link href="/agents">
+            <Image
+              src={logoSrc}
+              alt="LeAgent"
+              width={100}
+              height={33}
+              className="shrink-0 mt-1"
+            />
+          </Link>
           <button
             onClick={onToggle}
             className="text-[var(--icon)] hover:text-[var(--text)] transition-colors"
